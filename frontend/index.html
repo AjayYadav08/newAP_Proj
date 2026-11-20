@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageSync — Live Band & Artist Hiring Platform</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">
+          <span class="pulse-dot"></span>
+          ⚡
+        </div>
+        <div class="brand-text">
+          <h2>StageSync</h2>
+          <span>Live Music OS</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="artists">
+          <span class="icon">🎸</span> Bands &amp; Musicians <span class="nav-count" id="nav-count-artists">0</span>
+        </button>
+        <button class="nav-item" data-tab="gigs">
+          <span class="icon">📋</span> Opportunities Board <span class="nav-count" id="nav-count-gigs">3</span>
+        </button>
+        <button class="nav-item" data-tab="post-gig">
+          <span class="icon">➕</span> Post Opportunity
+        </button>
+        <button class="nav-item" data-tab="myprofile">
+          <span class="icon">👤</span> Profile &amp; History
+        </button>
+      </nav>
+
+      <div class="db-status-badge">
+        <span class="status-dot"></span>
+        <div>
+          <strong>System Online</strong>
+          <small>Database Connected</small>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Bands &amp; Musicians</h1>
+          <p class="topbar-sub" id="page-subtitle">Verified performers, per-gig pricing, locations, audio demos and technical specs</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('post-gig')">+ Post Opportunity</button>
+          <button class="btn btn-primary btn-sm" onclick="switchTab('myprofile')">👤 My Profile</button>
+        </div>
+      </header>
+
+      <!-- ========================================== -->
+      <!-- PAGE 1: Bands & Musicians Directory        -->
+      <!-- ========================================== -->
+      <section id="tab-artists" class="tab-content active">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="artist-search-input" placeholder="Search band name, genre, city, pricing..." />
+          </div>
+          <div class="filter-pills" id="artist-city-pills">
+            <button class="pill active" data-city="">All Cities</button>
+            <button class="pill" data-city="Mumbai">Mumbai</button>
+            <button class="pill" data-city="Bengaluru">Bengaluru</button>
+            <button class="pill" data-city="Delhi">Delhi</button>
+          </div>
+        </div>
+
+        <div class="artists-grid" id="artists-cards-grid">
+          <div class="loading-state">Loading band and musician profiles...</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- PAGE 2: Live Opportunities Board           -->
+      <!-- ========================================== -->
+      <section id="tab-gigs" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h3>Live Performance Opportunities</h3>
+            <p class="section-sub">Organizer requirements with compensation budget, performance hours, and area</p>
+          </div>
+          <button class="btn btn-primary" onclick="switchTab('post-gig')">+ Post New Opportunity</button>
+        </div>
+
+        <div class="gigs-container" id="gigs-cards-container">
+          <div class="loading-state">Loading live opportunities...</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- PAGE 3: Post Opportunity / Create Gig      -->
+      <!-- ========================================== -->
+      <section id="tab-post-gig" class="tab-content">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+          <div class="card-header">
+            <div>
+              <h3>Post a Live Gig Opportunity</h3>
+              <p class="section-sub">Publish performance requirements for bands and solo musicians to review and apply</p>
+            </div>
+          </div>
+
+          <form id="form-post-opportunity-page" class="form-vertical" style="margin-top: 1.25rem;">
+            <div class="form-group">
+              <label for="gig-post-title">Opportunity / Event Purpose</label>
+              <input type="text" id="gig-post-title" placeholder="e.g. 4-Piece Rock Band for College Fest Headliner" required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="gig-post-category">Performer Category</label>
+                <select id="gig-post-category" required>
+                  <option value="BAND">Live Band (4+ Members)</option>
+                  <option value="SOLO">Solo Vocalist / Singer</option>
+                  <option value="DJ">DJ / Electronic Artist</option>
+                  <option value="SOUND_ENGINEER">Sound Engineer</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="gig-post-genre">Required Genre / Musical Style</label>
+                <input type="text" id="gig-post-genre" placeholder="e.g. Rock, Alternative, Jazz, Bollywood" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="gig-post-budget">Compensation Budget (₹)</label>
+                <input type="number" id="gig-post-budget" value="50000" min="1000" step="any" placeholder="e.g. 50000" required />
+              </div>
+              <div class="form-group">
+                <label for="gig-post-duration">Performance Duration (Hours)</label>
+                <input type="number" id="gig-post-duration" value="3.0" min="0.5" max="24" step="any" placeholder="e.g. 3.0" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="gig-post-location">Performance Location / City Area</label>
+              <input type="text" id="gig-post-location" placeholder="e.g. Bandra Kurla Complex, Mumbai" required />
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label>Performance Timing Schedule</label>
+                <div class="quick-date-pills">
+                  <button type="button" class="btn-date-pill" onclick="setPostGigPreset('tonight')">Tonight (7-10 PM)</button>
+                  <button type="button" class="btn-date-pill" onclick="setPostGigPreset('tomorrow')">Tomorrow (8-11 PM)</button>
+                  <button type="button" class="btn-date-pill" onclick="setPostGigPreset('weekend')">Weekend (6-9:30 PM)</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="gig-post-start" style="font-size: 0.76rem;">Start Time</label>
+                  <input type="datetime-local" id="gig-post-start" required />
+                </div>
+                <div class="form-group">
+                  <label for="gig-post-end" style="font-size: 0.76rem;">End Time</label>
+                  <input type="datetime-local" id="gig-post-end" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="gig-post-desc">Requirement Description &amp; Repertoire Expectations</label>
+              <input type="text" id="gig-post-desc" placeholder="e.g. 3-hour headliner slot. Mix of 70% original rock and 30% crowd favorites. Full sound PA provided." required />
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <button type="submit" class="btn btn-primary btn-full" style="padding: 0.85rem; font-size: 1rem;">
+                🚀 Publish Live Opportunity
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- PAGE 4: Profile & History (Two Sections)   -->
+      <!-- ========================================== -->
+      <section id="tab-myprofile" class="tab-content">
+        <!-- Profile Hero Header -->
+        <div class="profile-hero-card">
+          <div class="profile-hero-avatar">M</div>
+          <div class="profile-hero-info">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <h2>Maya Sengupta</h2>
+              <span class="badge badge-primary">Event Producer &amp; Band Manager</span>
+            </div>
+            <p>SoundWave Productions &bull; Mumbai, India &bull; Member since 2022</p>
+            <div class="profile-meta-pills" style="margin-top: 0.6rem;">
+              <span>Total Opportunities Posted: <strong id="profile-stat-gigs">5 Gigs</strong></span>
+              <span>Total Deals Closed: <strong id="profile-stat-deals">7 Deals</strong></span>
+              <span>Total Paid to Artists: <strong id="profile-stat-paid">₹4,25,000</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 1.75rem;">
+          <!-- SECTION 1: Opportunity Dene Wale Ki Side (Organiser Deals History) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>📋 Organiser Deals &amp; Opportunities History</h3>
+                <p class="section-sub">Past opportunities published, performers hired, agreed deal amounts and schedule windows</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Performer / Band Hired</th>
+                    <th>Opportunity / Event</th>
+                    <th>Agreed Deal (₹)</th>
+                    <th>Time Slot Window</th>
+                    <th>Deal Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="myprofile-bookings-body">
+                  <tr><td colspan="6" class="loading">Loading deals and booking history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Band Ki Side (Band Roster & Performance History) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>🎸 Chrysalis Band Roster &amp; Live Performance History</h3>
+                <p class="section-sub">Managed band members, instrumentation, and past concert track record</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="openArtistSpecification('22222222-2222-2222-2222-222222222201')">
+                ⚡ View Chrysalis 6-Tab Portfolio Spec
+              </button>
+            </div>
+
+            <!-- Band Members Info -->
+            <div class="registered-band-box" style="margin-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <h4 style="font-size: 1.25rem;">Chrysalis</h4>
+                  <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem;">
+                    4-Piece Progressive &amp; Alternative Rock Band &bull; Formed 2022 &bull; Mumbai, India
+                  </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <span class="badge badge-success">✓ Verified Band</span>
+                  <span class="badge badge-primary">⭐ 4.9 Rating</span>
+                </div>
+              </div>
+
+              <div class="mini-members-list" style="margin-top: 1rem;">
+                <div class="mini-member-item">🎸 <strong>Aarav Strings</strong> &ndash; Lead Guitar &amp; Backing Vocals (6 yrs exp)</div>
+                <div class="mini-member-item">🎤 <strong>Meera K</strong> &ndash; Lead Vocals &amp; Songwriter (5 yrs exp)</div>
+                <div class="mini-member-item">🥁 <strong>Kabir Beats</strong> &ndash; Drums &amp; Percussion (7 yrs exp)</div>
+                <div class="mini-member-item">🎸 <strong>Ana Bass</strong> &ndash; Bass &amp; Synthesizers (4 yrs exp)</div>
+              </div>
+            </div>
+
+            <!-- Band History Table -->
+            <div class="table-container" style="margin-top: 1.25rem;">
+              <h5 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-muted);">
+                Band Past Performances &amp; Live Reviews
+              </h5>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Event / Festival</th>
+                    <th>Venue / City</th>
+                    <th>Contract Payout (₹)</th>
+                    <th>Organiser Rating &amp; Feedback</th>
+                  </tr>
+                </thead>
+                <tbody id="band-history-body">
+                  <tr>
+                    <td><strong>Monsoon Rock Fest</strong></td>
+                    <td>Bandra Kurla Arena, Mumbai</td>
+                    <td><strong style="color: var(--success);">₹45,000</strong></td>
+                    <td>⭐⭐⭐⭐⭐ "Electrifying 3-hour headliner set. Tight guitar tones &amp; great audience rapport!"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>IIT Techfest Headliner</strong></td>
+                    <td>Gymkhana Grounds, Mumbai</td>
+                    <td><strong style="color: var(--success);">₹60,000</strong></td>
+                    <td>⭐⭐⭐⭐⭐ "Punctual, professional, and had 2,000+ students singing along."</td>
+                  </tr>
+                  <tr>
+                    <td><strong>NH7 Weekender Showcase</strong></td>
+                    <td>Mahalaxmi Race Course, Mumbai</td>
+                    <td><strong style="color: var(--success);">₹50,000</strong></td>
+                    <td>⭐⭐⭐⭐⭐ "Crowd favorite. Clean soundcheck with zero technical delays."</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Direct Deal Booking                 -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="modal-direct-book">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚡ Confirm Direct Deal &amp; Book Performer</h3>
+        <button class="modal-close" data-close="modal-direct-book">&times;</button>
+      </div>
+
+      <div id="direct-booking-alert" class="alert-box" style="display: none;"></div>
+
+      <form id="form-direct-booking" class="form-vertical">
+        <div class="form-group">
+          <label for="direct-book-artist-select">Selected Performer / Band</label>
+          <select id="direct-book-artist-select" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="direct-book-event-select">Assign to Event / Opportunity</label>
+          <select id="direct-book-event-select" required></select>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label>Performance Slot Time Window</label>
+            <div class="quick-date-pills">
+              <button type="button" class="btn-date-pill" onclick="setDirectBookingPreset('tonight')">Tonight (7-10 PM)</button>
+              <button type="button" class="btn-date-pill" onclick="setDirectBookingPreset('tomorrow')">Tomorrow (8-11 PM)</button>
+              <button type="button" class="btn-date-pill" onclick="setDirectBookingPreset('weekend')">Weekend (6-9:30 PM)</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="direct-book-start" style="font-size: 0.76rem;">Start Time</label>
+              <input type="datetime-local" id="direct-book-start" required />
+            </div>
+            <div class="form-group">
+              <label for="direct-book-end" style="font-size: 0.76rem;">End Time</label>
+              <input type="datetime-local" id="direct-book-end" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label for="direct-book-fee">Agreed Deal Amount (₹)</label>
+            <span id="direct-book-duration-badge" class="badge badge-secondary">Duration: 3.0 hrs</span>
+          </div>
+          <input type="number" id="direct-book-fee" value="45000" min="500" step="any" required />
+          <div id="direct-book-fee-calc" class="form-fee-note" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">
+            💡 Calculated: 3.0 hrs slot based on performer rate &bull; Negotiable
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-direct-book">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Deal &amp; Lock Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Full 6-Tab Specification Profile    -->
+  <!-- ========================================== -->
+  <div class="modal-overlay modal-wide-overlay" id="modal-artist-spec">
+    <div class="modal-box modal-spec-box">
+      <!-- Spec Header -->
+      <div class="spec-header">
+        <div class="spec-hero">
+          <div class="spec-avatar" id="spec-avatar">C</div>
+          <div class="spec-hero-meta">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <h2 id="spec-name">Chrysalis</h2>
+              <span class="badge badge-success" id="spec-verified">✓ Verified Performer</span>
+            </div>
+            <p id="spec-tagline">Alternative Rock Band &bull; Mumbai, Maharashtra</p>
+            <div class="spec-quick-stats">
+              <span>⭐ <strong id="spec-rating">4.9</strong> / 5.0 Rating</span>
+              <span>🎤 <strong id="spec-gigs-count">24</strong> Events Performed</span>
+              <span>💰 Starting from <strong id="spec-price">₹45,000</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button class="btn btn-primary" id="btn-spec-book-now">⚡ Select / Book This Band</button>
+          <button class="modal-close" data-close="modal-artist-spec">&times;</button>
+        </div>
+      </div>
+
+      <!-- 6 Profile Tabs -->
+      <div class="spec-tabs-nav" id="spec-tabs-bar">
+        <button class="spec-tab-btn active" data-spectab="about">Overview</button>
+        <button class="spec-tab-btn" data-spectab="members">Members</button>
+        <button class="spec-tab-btn" data-spectab="portfolio">Portfolio &amp; Demos</button>
+        <button class="spec-tab-btn" data-spectab="pricing">Pricing &amp; Terms</button>
+        <button class="spec-tab-btn" data-spectab="technical">Technical Rider</button>
+        <button class="spec-tab-btn" data-spectab="reviews">Reviews</button>
+      </div>
+
+      <!-- Tab Panes -->
+      <div class="spec-tab-content">
+        <!-- 1. Overview Tab -->
+        <div class="spec-pane active" id="pane-about">
+          <div class="spec-section">
+            <h4>About the Artist / Band</h4>
+            <p id="spec-bio" style="line-height: 1.6; color: var(--text-muted); margin-top: 0.4rem;"></p>
+          </div>
+          <div class="spec-specs-grid" style="margin-top: 1rem;">
+            <div class="spec-box">
+              <span class="spec-box-label">Formation Year</span>
+              <strong id="spec-formation-year">2022</strong>
+            </div>
+            <div class="spec-box">
+              <span class="spec-box-label">Primary Genres</span>
+              <strong id="spec-genres">Rock, Alternative</strong>
+            </div>
+            <div class="spec-box">
+              <span class="spec-box-label">Languages Sung</span>
+              <strong id="spec-languages">English, Hindi</strong>
+            </div>
+            <div class="spec-box">
+              <span class="spec-box-label">Musical Influences</span>
+              <strong id="spec-influences">Porcupine Tree, Pink Floyd, Indian Ocean</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Members Tab -->
+        <div class="spec-pane" id="pane-members">
+          <h4>Band Members &amp; Instrumentation</h4>
+          <div class="members-roster-grid" id="spec-members-grid" style="margin-top: 0.8rem;"></div>
+        </div>
+
+        <!-- 3. Portfolio Tab -->
+        <div class="spec-pane" id="pane-portfolio">
+          <h4>Audio Demos &amp; Live Recordings</h4>
+          <p class="section-sub">Original studio tracks and live festival concert recordings</p>
+          <div class="portfolio-tracks-list" id="spec-portfolio-list" style="margin-top: 0.8rem;"></div>
+        </div>
+
+        <!-- 4. Pricing Tab -->
+        <div class="spec-pane" id="pane-pricing">
+          <h4>Pricing Model &amp; Contract Terms</h4>
+          <div class="spec-specs-grid" id="spec-pricing-grid" style="margin-top: 0.8rem;"></div>
+          <div class="rider-box" style="margin-top: 1rem;">
+            <h5>Travel &amp; Lodging Policy</h5>
+            <p id="spec-travel-policy" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;"></p>
+          </div>
+          <div class="rider-box" style="margin-top: 0.75rem;">
+            <h5>Cancellation &amp; Refund Terms</h5>
+            <p id="spec-cancel-policy" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;"></p>
+          </div>
+        </div>
+
+        <!-- 5. Technical Rider Tab -->
+        <div class="spec-pane" id="pane-technical">
+          <h4>Stage Technical Rider &amp; Hardware Specifications</h4>
+          <p class="section-sub">Sound, stage dimensions, and microphone inputs required for performance</p>
+          <div class="technical-rider-content" id="spec-technical-content" style="margin-top: 0.8rem;"></div>
+        </div>
+
+        <!-- 6. Reviews Tab -->
+        <div class="spec-pane" id="pane-reviews">
+          <h4>Verified Organiser Ratings &amp; Reviews</h4>
+          <div class="reviews-list" id="spec-reviews-list" style="margin-top: 0.8rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
