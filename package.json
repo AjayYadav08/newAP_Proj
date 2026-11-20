@@ -1,0 +1,14 @@
+{
+  "name": "stagesync",
+  "version": "1.0.0",
+  "description": "StageSync - Studio-Grade Live Event Management & Relational Engine",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}
