@@ -327,11 +327,11 @@ function renderGigs(gigs) {
           </div>
 
           <div class="gig-card-actions">
-            <button class="btn btn-primary" onclick="applyForGig('${g.id}', '${escapeHtml(g.title).replace(/'/g, "\\'")}')">
-              ⚡ Apply with Chrysalis Band
+            <button class="btn btn-primary" onclick="openDealForRequirement('${g.id}', '${bestMatch.artist_id || '22222222-2222-2222-2222-222222222201'}', ${g.budget || 50000}, '${g.event_date || ''}', ${g.duration_hours || 3})">
+              ⚡ Finalize Deal &amp; Lock Slot
             </button>
-            <button class="btn btn-secondary" onclick="switchTab('artists')">
-              🔍 Browse Performers
+            <button class="btn btn-secondary" onclick="applyForGig('${g.id}', '${escapeHtml(g.title).replace(/'/g, "\\'")}')">
+              📩 Apply with Band
             </button>
           </div>
         </div>
@@ -445,6 +445,15 @@ function setupForms() {
         return;
       }
 
+      const submitBtn = directBookForm.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Confirm Deal & Lock Slot';
+
+      // Instant UI response - user knows click is accepted immediately!
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Locking Deal & Booking Slot...';
+      }
+
       try {
         const res = await fetch('/api/bookings', {
           method: 'POST',
@@ -461,7 +470,7 @@ function setupForms() {
         const json = await res.json();
         if (json.success) {
           closeModal('modal-direct-book');
-          showToast('Deal confirmed & locked into schedule successfully!', 'success');
+          showToast('⚡ Deal confirmed & locked into schedule successfully!', 'success');
           await loadBookings();
           switchTab('myprofile');
         } else {
@@ -478,6 +487,11 @@ function setupForms() {
           alertBox.className = 'alert-box alert-error';
           alertBox.style.display = 'block';
           alertBox.textContent = 'Server error during booking submission.';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         }
       }
     });
@@ -578,6 +592,7 @@ function renderBookingsHistory(bookings) {
   if (bookings.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No confirmed deals or bookings yet. Direct book a band from the directory!</td></tr>';
     updateProfileStats(0, 0);
+    updateBandHistoryTable([]);
     return;
   }
 
@@ -592,26 +607,32 @@ function renderBookingsHistory(bookings) {
         totalPaid += parseFloat(b.fee) || 0;
       }
 
+      // Check if performer is Chrysalis Band (or leader Aarav Strings)
+      const isChrysalis = b.artist_name === 'Aarav Strings' || (b.artist_name && b.artist_name.toLowerCase().includes('chrysalis'));
+      const performerDisplay = isChrysalis
+        ? '🎸 <strong>Chrysalis (Band)</strong>'
+        : `🎤 <strong>${escapeHtml(b.artist_name || 'Performer')}</strong>`;
+
       const start = new Date(b.start_time);
       const end = new Date(b.end_time);
-      const timeStr = `${start.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}, ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      const timeStr = `${start.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}, ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
       return `
         <tr>
-          <td><strong>${escapeHtml(b.artist_name || 'Artist')}</strong></td>
-          <td>${escapeHtml(b.event_title || 'Concert / Fest')}</td>
-          <td><strong style="color: var(--success);">₹${Number(b.fee).toLocaleString('en-IN')}</strong></td>
+          <td>${performerDisplay}</td>
+          <td>${escapeHtml(b.event_title || 'Concert / Opportunity')}</td>
+          <td><strong style="color: var(--success); font-size: 0.95rem;">₹${Number(b.fee).toLocaleString('en-IN')}</strong></td>
           <td>${timeStr}</td>
           <td>
             <span class="badge ${isConfirmed ? 'badge-success' : 'badge-danger'}">
-              ${escapeHtml(b.status)}
+              ${isConfirmed ? '✓ CONFIRMED' : escapeHtml(b.status)}
             </span>
           </td>
           <td>
             ${
               isConfirmed
-                ? `<button class="btn btn-danger btn-xs" onclick="cancelBooking('${b.id}')">Cancel</button>`
-                : `<span style="color: var(--text-dim); font-size: 0.8rem;">Cancelled</span>`
+                ? `<button class="btn btn-danger btn-xs" onclick="cancelBooking('${b.id}')">Cancel Slot</button>`
+                : `<span style="color: var(--text-dim); font-size: 0.8rem;">Slot Released</span>`
             }
           </td>
         </tr>
@@ -620,6 +641,52 @@ function renderBookingsHistory(bookings) {
     .join('');
 
   updateProfileStats(totalDeals, totalPaid);
+  updateBandHistoryTable(bookings);
+}
+
+function updateBandHistoryTable(bookings) {
+  const tbody = document.getElementById('band-history-body');
+  if (!tbody) return;
+
+  const chrysalisBookings = bookings.filter(
+    (b) => b.status === 'CONFIRMED' && (b.artist_name === 'Aarav Strings' || (b.artist_name && b.artist_name.toLowerCase().includes('chrysalis')))
+  );
+
+  const dynamicRows = chrysalisBookings
+    .map((b) => {
+      return `
+        <tr style="background-color: rgba(79, 70, 229, 0.04);">
+          <td><strong>${escapeHtml(b.event_title || 'Live Gig')}</strong> <span class="badge badge-success" style="font-size: 0.7rem; margin-left: 0.4rem;">⚡ Live Deal</span></td>
+          <td>Mumbai / Live Venue</td>
+          <td><strong style="color: var(--success);">₹${Number(b.fee).toLocaleString('en-IN')}</strong></td>
+          <td>⭐⭐⭐⭐⭐ "Confirmed live performance contract locked via StageSync Direct Booking."</td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  const defaultRows = `
+    <tr>
+      <td><strong>Monsoon Rock Fest</strong></td>
+      <td>Bandra Kurla Arena, Mumbai</td>
+      <td><strong style="color: var(--success);">₹45,000</strong></td>
+      <td>⭐⭐⭐⭐⭐ "Electrifying 3-hour headliner set. Tight guitar tones &amp; great audience rapport!"</td>
+    </tr>
+    <tr>
+      <td><strong>IIT Techfest Headliner</strong></td>
+      <td>Gymkhana Grounds, Mumbai</td>
+      <td><strong style="color: var(--success);">₹60,000</strong></td>
+      <td>⭐⭐⭐⭐⭐ "Punctual, professional, and had 2,000+ students singing along."</td>
+    </tr>
+    <tr>
+      <td><strong>NH7 Weekender Showcase</strong></td>
+      <td>Mahalaxmi Race Course, Mumbai</td>
+      <td><strong style="color: var(--success);">₹50,000</strong></td>
+      <td>⭐⭐⭐⭐⭐ "Crowd favorite. Clean soundcheck with zero technical delays."</td>
+    </tr>
+  `;
+
+  tbody.innerHTML = dynamicRows + defaultRows;
 }
 
 function updateProfileStats(dealsCount, paidAmount) {
@@ -692,7 +759,10 @@ function populateEventSelectDropdown(events) {
 // ==========================================
 // 8. Direct Booking Modal Controller
 // ==========================================
-function openDirectBooking(artistId) {
+function openDirectBooking(artistId, eventId, customFee) {
+  // 1. Instant popup in 0ms!
+  openModal('modal-direct-book');
+
   const alertBox = document.getElementById('direct-booking-alert');
   if (alertBox) alertBox.style.display = 'none';
 
@@ -701,15 +771,85 @@ function openDirectBooking(artistId) {
     artistSelect.value = artistId;
   }
 
+  const eventSelect = document.getElementById('direct-book-event-select');
+  if (eventSelect && eventId) {
+    eventSelect.value = eventId;
+  }
+
   setDirectBookingPreset('tonight');
-  recalculateDirectBookingFee();
+
+  if (customFee) {
+    const feeInput = document.getElementById('direct-book-fee');
+    if (feeInput) feeInput.value = customFee;
+  } else {
+    recalculateDirectBookingFee();
+  }
+}
+
+// 1-Click Deal Done directly from Opportunities Board!
+function openDealForRequirement(eventId, artistId, budget, eventDate, durationHours) {
+  // 1. Instant popup in 0ms!
   openModal('modal-direct-book');
+
+  const alertBox = document.getElementById('direct-booking-alert');
+  if (alertBox) alertBox.style.display = 'none';
+
+  // 2. Select matched performer / band
+  const artistSelect = document.getElementById('direct-book-artist-select');
+  if (artistSelect && artistId) {
+    artistSelect.value = artistId;
+  }
+
+  // 3. Select opportunity in event dropdown (or inject if missing)
+  const eventSelect = document.getElementById('direct-book-event-select');
+  if (eventSelect && eventId) {
+    let opt = eventSelect.querySelector(`option[value="${eventId}"]`);
+    if (!opt) {
+      const gig = gigsCache.find((g) => g.id === eventId);
+      if (gig) {
+        opt = document.createElement('option');
+        opt.value = gig.id;
+        opt.textContent = `${gig.title} — Budget: ₹${Number(gig.budget || 0).toLocaleString('en-IN')}`;
+        eventSelect.appendChild(opt);
+      }
+    }
+    if (opt) eventSelect.value = eventId;
+  }
+
+  // 4. Fill timing schedule
+  const startInput = document.getElementById('direct-book-start');
+  const endInput = document.getElementById('direct-book-end');
+  const duration = parseFloat(durationHours) || 3;
+
+  let start = eventDate ? new Date(eventDate) : new Date();
+  if (start < new Date()) {
+    start = new Date();
+    start.setHours(19, 0, 0, 0);
+  }
+  let end = new Date(start.getTime() + duration * 3600000);
+
+  if (startInput) startInput.value = formatIsoLocal(start);
+  if (endInput) endInput.value = formatIsoLocal(end);
+
+  // 5. Fill fee amount from gig budget
+  const feeInput = document.getElementById('direct-book-fee');
+  if (feeInput && budget) {
+    feeInput.value = budget;
+  }
+
+  const badgeEl = document.getElementById('direct-book-duration-badge');
+  const calcEl = document.getElementById('direct-book-fee-calc');
+  if (badgeEl) badgeEl.textContent = `Duration: ${duration} hrs`;
+  if (calcEl) calcEl.innerHTML = `💡 <strong>Agreed Gig Compensation:</strong> ₹${Number(budget).toLocaleString('en-IN')} (Full package for this requirement)`;
 }
 
 // ==========================================
 // 9. 6-Tab Studio Specification Modal
 // ==========================================
 async function openArtistSpecification(artistId) {
+  // 1. Instant popup in 0ms!
+  openModal('modal-artist-spec');
+
   try {
     const res = await fetch(`/api/artists/${artistId}/full-profile`);
     const json = await res.json();
@@ -1171,6 +1311,7 @@ function escapeHtml(str) {
 // Global exports for inline HTML onclick handlers
 window.switchTab = switchTab;
 window.openDirectBooking = openDirectBooking;
+window.openDealForRequirement = openDealForRequirement;
 window.openArtistSpecification = openArtistSpecification;
 window.applyForGig = applyForGig;
 window.cancelBooking = cancelBooking;

@@ -10,7 +10,7 @@ const { query } = require('../db');
 // In-memory / persisted gig requirements seed
 let gigRequirements = [
   {
-    id: 'gig-req-001',
+    id: '88888888-8888-8888-8888-888888888803',
     title: '4-Piece Rock Band for College Fest Headliner',
     organizer: 'Mumbai University Cultural Council',
     category: 'BAND',
@@ -25,7 +25,7 @@ let gigRequirements = [
     applicants_count: 2,
   },
   {
-    id: 'gig-req-002',
+    id: '88888888-8888-8888-8888-888888888804',
     title: 'Jazz Vocalist & Trio for Rooftop Lounge Launch',
     organizer: 'Skyline Hospitality Group',
     category: 'SOLO_OR_TRIO',
@@ -40,7 +40,7 @@ let gigRequirements = [
     applicants_count: 1,
   },
   {
-    id: 'gig-req-003',
+    id: '88888888-8888-8888-8888-888888888805',
     title: 'Lead Sound Engineer for 2-Day Open Air Music Festival',
     organizer: 'SoundWave Productions',
     category: 'SOUND_ENGINEER',

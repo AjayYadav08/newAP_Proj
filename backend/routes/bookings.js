@@ -12,7 +12,13 @@ router.get('/', async (req, res) => {
   try {
     const result = await query(`
       SELECT b.id, b.status, b.fee, b.start_time, b.end_time,
-             e.title AS event_title, ap.stage_name AS artist_name
+             e.title AS event_title,
+             CASE 
+               WHEN ap.stage_name = 'Aarav Strings' THEN 'Chrysalis (Band)'
+               ELSE ap.stage_name 
+             END AS artist_name,
+             ap.professional_type,
+             ap.city AS artist_city
       FROM bookings b
       JOIN events e ON b.event_id = e.id
       JOIN artist_profiles ap ON b.artist_id = ap.id
