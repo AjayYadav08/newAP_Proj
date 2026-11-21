@@ -404,7 +404,7 @@ function setupForms() {
           showToast('Live Opportunity published successfully!', 'success');
           postGigForm.reset();
           initializeDateTimePresets();
-          await loadGigs();
+          await Promise.all([loadGigs(), loadEvents()]);
           switchTab('gigs');
         } else {
           showToast(json.error || 'Failed to publish opportunity', 'error');
@@ -763,12 +763,7 @@ async function openArtistSpecification(artistId) {
     // 2. Members Tab
     const membersGrid = document.getElementById('spec-members-grid');
     if (membersGrid) {
-      const members = p.members || [
-        { name: 'Aarav Strings', role: 'Lead Guitar', instrument: 'Fender Stratocaster', experience_years: 6 },
-        { name: 'Meera K', role: 'Lead Vocals', instrument: 'Shure Super 55 Vintage Mic', experience_years: 5 },
-        { name: 'Kabir Beats', role: 'Drums', instrument: 'Yamaha Stage Custom Kit', experience_years: 7 },
-        { name: 'Ana Bass', role: 'Bass', instrument: 'Fender Jazz Bass & Darkglass Rig', experience_years: 4 },
-      ];
+      const members = p.members || [];
 
       membersGrid.innerHTML = members
         .map(
@@ -790,11 +785,7 @@ async function openArtistSpecification(artistId) {
     // 3. Portfolio & Demos Tab
     const portfolioList = document.getElementById('spec-portfolio-list');
     if (portfolioList) {
-      const tracks = p.portfolio || [
-        { title: 'Horizon Echoes', type: 'Original Studio Track', duration: '5:00', release_year: 2024 },
-        { title: 'Midnight Drift', type: 'Alternative Rock Single', duration: '4:15', release_year: 2023 },
-        { title: 'Cobalt Sky (Live at NH7)', type: 'Festival Live Recording', duration: '4:45', release_year: 2024 },
-      ];
+      const tracks = p.portfolio || [];
 
       portfolioList.innerHTML = tracks
         .map(
@@ -880,10 +871,7 @@ async function openArtistSpecification(artistId) {
     // 6. Reviews Tab
     const reviewsList = document.getElementById('spec-reviews-list');
     if (reviewsList) {
-      const reviews = p.reviews || [
-        { organiser_name: 'Maya Sengupta (SoundWave)', event_title: 'Monsoon Rock Fest', rating: 5, comment: 'Incredible stage presence, crisp guitar tones and zero technical issues. Rocked a crowd of 2,000+!' },
-        { organiser_name: 'Rohan Verma (Campus Pulse)', event_title: 'IIT Techfest Headliner', rating: 5, comment: 'Punctual, professional and great crowd interaction. Chrysalis made our annual night unforgettable.' },
-      ];
+      const reviews = p.reviews || [];
 
       reviewsList.innerHTML = reviews
         .map(

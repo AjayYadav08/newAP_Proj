@@ -1,27 +1,34 @@
-# StageSync — Live Event Management Platform
+# StageSync — Live Band & Musician Hiring Platform
 
-StageSync is a studio-grade live event production and artist booking management system. It provides real-time artist scheduling, concurrency-safe booking, setlist duration calculation, and equipment inventory tracking on top of a fully normalized PostgreSQL database.
+StageSync is a studio-grade live band and musician booking platform. It features artist discovery, full 6-tab studio specifications, live gig opportunities with compatibility matching, and concurrency-safe direct scheduling on top of a PostgreSQL database with Neon cloud deployment.
 
 ---
 
-## 1. Quick Start
+## 1. Quick Links
+
+- **Live Cloud Deployment:** [https://newapproj.vercel.app](https://newapproj.vercel.app)
+- **GitHub Repository:** [https://github.com/AjayYadav08/newAP_Proj](https://github.com/AjayYadav08/newAP_Proj)
+
+---
+
+## 2. Quick Start (Local Setup)
 
 ### Prerequisites
 - Node.js (v18+)
-- PostgreSQL (v15+) running locally on port 5432
+- PostgreSQL (v15+) running locally on port 5432 (or a cloud `DATABASE_URL`)
 
-### Setup Database
+### Database Setup
 ```bash
 # 1. Connect to PostgreSQL and execute the schema (23 tables)
 psql -d postgres -f dbms/03_schema.sql
 
-# 2. Populate realistic seed data and run queries
+# 2. Populate realistic seed data and complex queries
 psql -d postgres -f dbms/04_queries.sql
 ```
 
 ### Start the Application
 ```bash
-# Install dependencies (Express, pg, cors)
+# Install dependencies (express, pg, cors)
 npm install
 
 # Start the server
@@ -33,102 +40,88 @@ Open your browser and navigate to:
 
 ---
 
-## 2. Project Architecture
+## 3. Project Architecture
 
-The project has been scaled down and simplified into a clean, readable architecture designed for college viva demonstration:
+The project is structured into a clean, modular architecture designed for high maintainability and college viva demonstration:
 
 ```text
-├── backend/                       # Modular Backend Architecture (7 Clean Files)
-│   ├── db.js                      # PostgreSQL connection pool using 'pg' (35 lines)
-│   ├── server.js                  # Main Express app, middleware & router mounting (80 lines)
-│   └── routes/                    # Team Member Domains (~80-115 lines each)
-│       ├── artists.js             # Member 1: Artist Profiles, Genres, Skills & Band Lineup (Q1 & Q7)
-│       ├── bookings.js            # Member 2: Concurrency Engine & Algorithm B Conflict Check
-│       ├── setlists.js            # Member 3: Performance Engine & Algorithm C Duration Calculator
-│       ├── events.js              # Member 4: Events, Venues & Financial Auditing (Q4.2 & Q5)
-│       └── equipment.js           # Member 4: Hardware Inventory & Algorithm E Anti-Join Availability
-├── frontend/                      # Pure client-side dashboard (Zero framework bloat)
-│   ├── index.html                 # Clean interactive dashboard UI
-│   ├── style.css                  # Modern dark-theme stylesheet
-│   └── app.js                     # Vanilla JavaScript with async/fetch calls
-├── dbms/                          # Core DBMS Assignment Submissions
+├── backend/                       # Modular Backend Architecture (4 Team Modules)
+│   ├── db.js                      # PostgreSQL connection pool (supports Local & Neon Cloud)
+│   ├── server.js                  # Main Express app, middleware & router mounting
+│   └── routes/                    # Team Member Domains
+│       ├── artists.js             # Member 1: Artist Discovery, Pricing & 6-Tab Studio Specs
+│       ├── bookings.js            # Member 2: Direct Booking Engine & Algorithm B Conflict Check
+│       ├── requirements.js        # Member 3: Live Gig Opportunities & Compatibility Matching
+│       └── events.js              # Member 4: Live Concerts, Venues & Financial Auditing
+├── frontend/                      # Pure Client-Side Application (Zero Framework Overhead)
+│   ├── index.html                 # 4-Page Marketplace Layout (Directory, Gigs, Post, Profile)
+│   ├── style.css                  # Modern clean white / light SaaS theme
+│   └── app.js                     # Vanilla JavaScript controller with Web Audio synthesizer
+├── dbms/                          # Database Engineering Specifications
 │   ├── 01_normalization.md        # Formal 1NF -> BCNF normalization proofs
-│   ├── 02_er_diagram.png          # 4K high-resolution ER Diagram (23 tables)
+│   ├── 02_er_diagram.png          # High-resolution ER diagram (23 tables)
 │   ├── 03_schema.sql              # PostgreSQL DDL with GiST exclusion constraints
-│   ├── 04_queries.sql             # Seed data, application queries & analytics
-│   ├── 05_query_timings.md        # EXPLAIN ANALYZE execution benchmarks
-│   └── plans/                     # Raw execution plans (Q1 to Q8)
-├── .env.example                   # Environment variables template
-├── .gitignore                     # Ignored files (node_modules, .env)
+│   ├── 04_queries.sql             # 8 Complex business queries & sample seed data
+│   ├── 05_query_timings.md        # EXPLAIN ANALYZE benchmark metrics
+│   └── plans/                     # Query execution plans (Q1 to Q8)
+├── vercel.json                    # Vercel serverless routing configuration
+├── api/                           # Cloud deployment serverless entry point
+│   └── index.js                   # Routes serverless requests to Express backend
+├── .env.example                   # Environment variable template
+├── .gitignore                     # Git ignore rules (node_modules, .env, .vercel)
 ├── package.json                   # Project manifest & start script
-└── README.md                      # Documentation & Viva preparation guide
+└── README.md                      # Project documentation & Viva guide
 ```
 
 ---
 
-## 3. Team Member Module Allocation (Viva Reference)
+## 4. Team Member Module Allocation (Viva Reference)
 
-| Member | Assigned Backend File | Key Responsibilities | Core Viva Talking Point |
+| Team Member | Assigned Backend File | Key Responsibilities | Core Viva Talking Point |
 | :--- | :--- | :--- | :--- |
-| **Member 1** | `backend/routes/artists.js` | Artist Profiles, Skills, Genres & Band Lineups | Multi-attribute search indexing (Query 1) & composite active lineup traversal (Query 7). |
-| **Member 2** | `backend/routes/bookings.js` | Scheduling & Booking Concurrency | **Algorithm B**: Range overlap detection and PostgreSQL GiST exclusion constraint (`no_artist_booking_overlap`). |
-| **Member 3** | `backend/routes/setlists.js` | Live Setlist Engine & Track Sequencing | **Algorithm C**: Runtime duration summation vs target slot calculation and buffer management. |
-| **Member 4** | `backend/routes/events.js` & `equipment.js` | Events, Venues, Hardware Inventory & Financials | **Algorithm E**: Hardware availability via anti-join (Query 4) and event financial auditing (Query 4.2 & 5). |
+| **Member 1** | `backend/routes/artists.js` | Bands & Musicians Discovery, Filters & 6-Tab Portfolio Spec | Multi-attribute search indexing (Query 1), per-gig pricing models, and 6-tab studio specification modal (Overview, Members, Portfolio, Pricing, Technical Rider, Reviews). |
+| **Member 2** | `backend/routes/bookings.js` | Direct Booking Engine & Concurrency Conflict Protection | **Algorithm B**: Concurrency-safe temporal slot overlap check (`start_time < $3 AND end_time > $2`) and PostgreSQL GiST exclusion constraint (`btree_gist`). |
+| **Member 3** | `backend/routes/requirements.js` | Organizer Gig Openings & Compatibility Matching Engine | **Compatibility Algorithm**: Computes match percentage (up to 98%) based on musical genre alignment, geographic feasibility, and budget compliance. |
+| **Member 4** | `backend/routes/events.js` | Live Concert Schedules, Venues & Financial Settlements | Multi-table joins for event operations, venue capacity utilization (Query 5), and artist career earnings audit aggregation (Query 4.2). |
 
 ---
 
-## 3. Core Algorithms & SQL Queries
+## 5. Core Algorithms & SQL Queries
 
 ### Algorithm B: Concurrency-Safe Booking Overlap Check
 - **Endpoint:** `POST /api/bookings`
-- **Logic:** Before inserting a new booking, the system evaluates time-range overlap:
+- **Logic:** Before inserting any deal or booking, the system evaluates time-range overlap:
   ```sql
-  SELECT id FROM bookings
-  WHERE artist_id = $1
-    AND status NOT IN ('CANCELLED', 'REJECTED')
-    AND start_time < $3 AND end_time > $2;
+  SELECT b.id, b.start_time, b.end_time, e.title AS event_title
+  FROM bookings b
+  JOIN events e ON b.event_id = e.id
+  WHERE b.artist_id = $1
+    AND b.status NOT IN ('CANCELLED')
+    AND b.start_time < $3
+    AND b.end_time > $2;
   ```
-- **Storage-Engine Safety:** Even if two requests arrive at the exact same millisecond, PostgreSQL's `btree_gist` exclusion constraint (`no_artist_booking_overlap`) prevents double-booking at the storage level.
+- **Storage-Engine Safety:** Even under simultaneous requests, PostgreSQL's `btree_gist` exclusion constraint prevents double-booking at the storage level.
 
-### Algorithm C: Setlist Duration & Target Gap
-- **Endpoint:** `GET /api/setlists`
-- **Logic:** Calculates total duration of queued songs and verifies whether the performance fits within the target slot:
-  ```sql
-  SELECT sl.name, sl.target_duration_seconds,
-         COALESCE(SUM(s.duration_seconds), 0) AS total_song_seconds,
-         sl.target_duration_seconds - COALESCE(SUM(s.duration_seconds), 0) AS remaining_seconds
-  FROM setlists sl
-  LEFT JOIN setlist_songs ss ON sl.id = ss.setlist_id
-  LEFT JOIN songs s ON ss.song_id = s.id
-  GROUP BY sl.id, sl.name, sl.target_duration_seconds;
-  ```
-
-### Algorithm E: Stage Equipment Conflict Resolution
-- **Endpoint:** `GET /api/equipment`
-- **Logic:** Identifies available audio and lighting hardware by executing a `NOT EXISTS` anti-join against overlapping reservations:
-  ```sql
-  SELECT e.name, e.category, e.daily_rate
-  FROM equipment e
-  WHERE e.operational_status = 'AVAILABLE'
-    AND NOT EXISTS (
-        SELECT 1 FROM equipment_reservations er
-        WHERE er.equipment_id = e.id
-          AND er.status IN ('CONFIRMED', 'IN_USE')
-          AND er.start_time < $2 AND end_time > $1
-    );
-  ```
+### Compatibility Matching Algorithm
+- **Endpoint:** `GET /api/requirements`
+- **Logic:** Matches open gig requirements with registered performers using weighted alignment scoring:
+  1. **Genre Alignment:** +30 points for matching musical styles.
+  2. **Location Proximity:** +15 points if the artist is based in the event city.
+  3. **Budget Feasibility:** +10 points if the artist's rate fits within the organizer's allocated compensation.
 
 ---
 
-## 4. Key Viva Questions & Explanations
+## 6. Key Viva Questions & Answers
 
-1. **Why is the database normalized to 3NF / BCNF?**
-   - Eliminates update, insert, and deletion anomalies.
-   - Separates distinct real-world entities (Artists, Bands, Venues, Events, Songs, Equipment) into independent tables linked by foreign keys.
+1. **Why is the database normalized up to 3NF / BCNF?**
+   - It eliminates update, insert, and deletion anomalies.
+   - Independent entities (Users, Artist Profiles, Bands, Band Members, Events, Bookings, Venues) reside in dedicated tables linked by foreign keys without data redundancy.
 
-2. **Why use GiST exclusion constraints instead of checking in code?**
-   - Application-level `SELECT ... WHERE` checks are prone to race conditions under concurrent requests.
-   - GiST exclusion constraints lock and check index pages directly in PostgreSQL, guaranteeing zero double-bookings with zero race windows.
+2. **Why use both application-level checks and GiST exclusion constraints?**
+   - Application-level `SELECT ... WHERE` checks provide user-friendly error messages (e.g., *"Schedule Conflict: Artist already booked"*).
+   - Database-level GiST constraints guarantee ACID transaction isolation even under high-concurrency race conditions.
 
-3. **How fast are the database queries?**
-   - All critical lookups run in **under 1 millisecond** (e.g. Band Lineup: 0.130 ms, Equipment Check: 0.162 ms, Artist Search: 0.217 ms) because high-cardinality foreign keys and composite filter attributes are indexed.
+3. **How does the system work on both Localhost and Vercel?**
+   - `backend/db.js` dynamically checks for `process.env.DATABASE_URL`.
+   - On Vercel, it connects via SSL to the cloud Neon PostgreSQL database.
+   - On local development, it seamlessly falls back to the local PostgreSQL instance on port 5432.

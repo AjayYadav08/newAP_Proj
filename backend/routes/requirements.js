@@ -1,6 +1,6 @@
 // ==========================================
 // StageSync: Gig Requirements & Matching Engine
-// Module: Member 4 (Organizer Gig Postings & Compatibility Matching)
+// Module: Member 3 (Organizer Gig Postings & Compatibility Matching)
 // ==========================================
 
 const express = require('express');
@@ -141,17 +141,41 @@ router.post('/', async (req, res) => {
       });
     }
 
+    const gigBudget = parseFloat(budget) || 50000;
+    const gigHours = parseFloat(duration_hours) || 3;
+    const gigGenre = required_genre || genre || 'Rock';
+    const gigDesc = description || 'Professional performance required with original repertoire and high audience engagement.';
+
+    let eventId = `gig-req-${Date.now().toString().slice(-4)}`;
+
+    // Persist into PostgreSQL events table if database is connected
+    try {
+      const startTime = event_date ? new Date(event_date) : new Date(Date.now() + 7 * 86400000);
+      const endTime = new Date(startTime.getTime() + gigHours * 3600000);
+      const dbRes = await query(
+        `INSERT INTO events (title, event_type, status, start_time, end_time, organizer_id, budget, description)
+         VALUES ($1, 'CONCERT', 'PUBLISHED', $2, $3, '11111111-1111-1111-1111-111111111102'::uuid, $4, $5)
+         RETURNING id;`,
+        [title, startTime, endTime, gigBudget, gigDesc]
+      );
+      if (dbRes.rows && dbRes.rows.length > 0) {
+        eventId = dbRes.rows[0].id;
+      }
+    } catch (dbErr) {
+      console.warn('Notice: PostgreSQL events insert fallback to in-memory:', dbErr.message);
+    }
+
     const newGig = {
-      id: `gig-req-${Date.now().toString().slice(-4)}`,
+      id: eventId,
       title,
-      organizer: organizer || 'Verified Event Organizer',
+      organizer: organizer || 'SoundWave Productions (Maya Sengupta)',
       category: category || 'BAND',
-      required_genre: required_genre || genre || 'Rock',
-      budget: parseFloat(budget),
-      duration_hours: parseFloat(duration_hours) || 3,
+      required_genre: gigGenre,
+      budget: gigBudget,
+      duration_hours: gigHours,
       location,
       event_date: event_date || new Date(Date.now() + 7 * 86400000).toISOString(),
-      description: description || 'Professional performance required with original repertoire and high audience engagement.',
+      description: gigDesc,
       technical_spec: technical_spec || 'Standard stage PA system and monitor wedges provided.',
       status: 'OPEN',
       applicants_count: 0,

@@ -132,6 +132,10 @@ async function getEarningsReport(req, res) {
   }
 }
 
+// Direct sub-routes on events router
+router.get('/venues/list', getVenues);
+router.get('/reports/earnings', getEarningsReport);
+
 module.exports = router;
 module.exports.getVenues = getVenues;
 module.exports.getEarningsReport = getEarningsReport;
