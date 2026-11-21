@@ -291,14 +291,19 @@ function renderGigs(gigs) {
     .map((g) => {
       const budgetDisplay = `₹${Number(g.budget).toLocaleString('en-IN')}`;
       const bestMatch = g.best_match || { artist_name: 'Chrysalis (Band)', match_score: 95 };
+      const isLocked = g.is_locked || g.status === 'LOCKED';
 
       return `
-        <div class="gig-card" data-gig-id="${g.id}">
+        <div class="gig-card ${isLocked ? 'gig-card-locked' : ''}" data-gig-id="${g.id}">
           <div class="gig-card-header">
             <div>
               <div class="gig-category-row">
                 <span class="badge badge-primary">${escapeHtml(g.category || 'BAND')}</span>
-                <span class="badge badge-success">${escapeHtml(g.status || 'OPEN')}</span>
+                ${
+                  isLocked
+                    ? '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;">🔒 DEAL LOCKED</span>'
+                    : `<span class="badge badge-success">${escapeHtml(g.status || 'OPEN')}</span>`
+                }
               </div>
               <h4 class="gig-title">${escapeHtml(g.title)}</h4>
               <p class="gig-meta">
@@ -327,12 +332,25 @@ function renderGigs(gigs) {
           </div>
 
           <div class="gig-card-actions">
-            <button class="btn btn-primary" onclick="openDealForRequirement('${g.id}', '${bestMatch.artist_id || '22222222-2222-2222-2222-222222222201'}', ${g.budget || 50000}, '${g.event_date || ''}', ${g.duration_hours || 3})">
-              ⚡ Finalize Deal &amp; Lock Slot
-            </button>
-            <button class="btn btn-secondary" onclick="applyForGig('${g.id}', '${escapeHtml(g.title).replace(/'/g, "\\'")}')">
-              📩 Apply with Band
-            </button>
+            ${
+              isLocked
+                ? `
+                  <button class="btn btn-secondary" onclick="switchTab('myprofile')" style="border-color:#10b981; color:#065f46; background:#ecfdf5; font-weight:600;">
+                    ✅ Deal Locked &amp; Confirmed (View in History)
+                  </button>
+                  <button class="btn btn-secondary" onclick="openDealForRequirement('${g.id}', '${bestMatch.artist_id || '22222222-2222-2222-2222-222222222201'}', ${g.budget || 50000}, '${g.event_date || ''}', ${g.duration_hours || 3})" style="font-size:0.8rem; padding:0.4rem 0.75rem; opacity:0.85;">
+                    ⚙️ Modify Slot
+                  </button>
+                `
+                : `
+                  <button class="btn btn-primary" onclick="openDealForRequirement('${g.id}', '${bestMatch.artist_id || '22222222-2222-2222-2222-222222222201'}', ${g.budget || 50000}, '${g.event_date || ''}', ${g.duration_hours || 3})">
+                    ⚡ Finalize Deal &amp; Lock Slot
+                  </button>
+                  <button class="btn btn-secondary" onclick="applyForGig('${g.id}', '${escapeHtml(g.title).replace(/'/g, "\\'")}')">
+                    📩 Apply with Band
+                  </button>
+                `
+            }
           </div>
         </div>
       `;
@@ -471,16 +489,59 @@ function setupForms() {
         if (json.success) {
           closeModal('modal-direct-book');
           showToast('⚡ Deal confirmed & locked into schedule successfully!', 'success');
-          await loadBookings();
+          await Promise.all([loadBookings(), loadGigs()]);
           switchTab('myprofile');
         } else {
           // Conflict or Validation Error
           if (alertBox) {
             alertBox.className = 'alert-box alert-error';
             alertBox.style.display = 'block';
-            alertBox.innerHTML = `⚠️ <strong>Scheduling Conflict:</strong> ${escapeHtml(json.error || 'The selected slot overlaps with an existing confirmed booking.')}`;
+
+            const rawError = json.error || 'The selected slot overlaps with an existing confirmed booking.';
+            const isAlreadyLocked = json.isSameEvent || rawError.toLowerCase().includes('already locked') || rawError.toLowerCase().includes('already booked for this opportunity');
+
+            if (isAlreadyLocked) {
+              alertBox.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 0.6rem;">
+                  <span style="font-size: 1.35rem; line-height: 1;">🔒</span>
+                  <div style="flex: 1;">
+                    <strong style="color: #991b1b; display: block; font-size: 0.95rem; margin-bottom: 0.25rem;">
+                      Deal Already Finalized &amp; Locked
+                    </strong>
+                    <p style="margin: 0 0 0.5rem 0; color: #7f1d1d; font-size: 0.85rem; line-height: 1.4;">
+                      ${escapeHtml(rawError)}
+                    </p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('modal-direct-book'); switchTab('myprofile');" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; background: #fff; border-color: #fca5a5; font-weight: 600;">
+                        📋 View Booking History &amp; Contract
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('modal-direct-book');" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; background: #fff; border-color: #e5e7eb;">
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else {
+              alertBox.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 0.6rem;">
+                  <span style="font-size: 1.35rem; line-height: 1;">⚠️</span>
+                  <div style="flex: 1;">
+                    <strong style="color: #991b1b; display: block; font-size: 0.95rem; margin-bottom: 0.25rem;">
+                      Scheduling Conflict Detected
+                    </strong>
+                    <p style="margin: 0 0 0.4rem 0; color: #7f1d1d; font-size: 0.85rem; line-height: 1.4;">
+                      ${escapeHtml(rawError.replace(/^Schedule Conflict:\s*/i, ''))}
+                    </p>
+                    <small style="display: block; color: #991b1b; opacity: 0.9; font-size: 0.78rem;">
+                      💡 <strong>Quick Fix:</strong> Change the start/end time in the fields below, or select another performer from the dropdown.
+                    </small>
+                  </div>
+                </div>
+              `;
+            }
           }
-          showToast('Booking conflict detected. See alert message.', 'error');
+          showToast(json.isSameEvent ? 'Deal is already locked for this opportunity.' : 'Booking conflict detected. See details above.', 'error');
         }
       } catch (err) {
         if (alertBox) {
@@ -792,7 +853,30 @@ function openDealForRequirement(eventId, artistId, budget, eventDate, durationHo
   openModal('modal-direct-book');
 
   const alertBox = document.getElementById('direct-booking-alert');
-  if (alertBox) alertBox.style.display = 'none';
+  if (alertBox) {
+    alertBox.style.display = 'none';
+    alertBox.style.backgroundColor = '';
+    alertBox.style.borderColor = '';
+    alertBox.style.color = '';
+
+    // Check if this gig is already confirmed in booking history
+    const alreadyBooked = Array.isArray(bookingsCache) && bookingsCache.find((b) => b.event_id === eventId && b.status !== 'CANCELLED');
+    if (alreadyBooked) {
+      alertBox.className = 'alert-box';
+      alertBox.style.display = 'block';
+      alertBox.style.backgroundColor = '#eff6ff';
+      alertBox.style.borderColor = '#bfdbfe';
+      alertBox.style.color = '#1e40af';
+      alertBox.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+          <span style="font-size: 1.2rem;">ℹ️</span>
+          <div>
+            <strong>Active Contract Notice:</strong> A booking is already confirmed for this requirement with <em>${escapeHtml(alreadyBooked.artist_name || 'Performer')}</em>. You can modify the time window below or view the confirmed contract in My Profile.
+          </div>
+        </div>
+      `;
+    }
+  }
 
   // 2. Select matched performer / band
   const artistSelect = document.getElementById('direct-book-artist-select');

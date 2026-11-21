@@ -561,6 +561,11 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+.gig-card-locked {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(to right, #f0fdf4 0%, var(--bg-card) 12%);
+}
+
 .gig-card-header {
   display: flex;
   justify-content: space-between;

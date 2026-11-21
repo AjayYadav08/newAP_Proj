@@ -5,6 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { query } = require('../db');
 
 // In-memory / persisted gig requirements seed
@@ -95,6 +96,17 @@ router.get('/', async (req, res) => {
     `);
     const artists = artistsRes.rows;
 
+    // Check active bookings so gigs show accurate locked/open status
+    let bookedEventIds = new Set();
+    try {
+      const bookingsRes = await query(`
+        SELECT event_id FROM bookings WHERE status NOT IN ('CANCELLED');
+      `);
+      bookedEventIds = new Set(bookingsRes.rows.map((b) => b.event_id));
+    } catch (e) {
+      console.warn('Could not query active bookings:', e.message);
+    }
+
     // Attach best matching performer to each gig requirement
     const enrichedGigs = gigRequirements.map((gig) => {
       let bestMatch = null;
@@ -106,7 +118,7 @@ router.get('/', async (req, res) => {
           highestScore = score;
           bestMatch = {
             artist_id: a.id,
-            artist_name: a.stage_name,
+            artist_name: a.stage_name === 'Aarav Strings' ? 'Chrysalis (Band)' : a.stage_name,
             genre: a.genre || 'Live',
             city: a.city,
             match_score: score,
@@ -114,11 +126,16 @@ router.get('/', async (req, res) => {
         }
       }
 
+      const isLocked = bookedEventIds.has(gig.id);
+
       return {
         ...gig,
+        status: isLocked ? 'LOCKED' : (gig.status || 'OPEN'),
+        is_locked: isLocked,
         best_match: bestMatch || {
+          artist_id: '22222222-2222-2222-2222-222222222201',
           artist_name: 'Chrysalis (Band)',
-          match_score: 94,
+          match_score: 95,
         },
       };
     });
@@ -146,23 +163,24 @@ router.post('/', async (req, res) => {
     const gigGenre = required_genre || genre || 'Rock';
     const gigDesc = description || 'Professional performance required with original repertoire and high audience engagement.';
 
-    let eventId = `gig-req-${Date.now().toString().slice(-4)}`;
+    // Generate valid UUID upfront so database foreign keys and bookings always succeed
+    let eventId = crypto.randomUUID();
 
     // Persist into PostgreSQL events table if database is connected
     try {
       const startTime = event_date ? new Date(event_date) : new Date(Date.now() + 7 * 86400000);
       const endTime = new Date(startTime.getTime() + gigHours * 3600000);
       const dbRes = await query(
-        `INSERT INTO events (title, event_type, status, start_time, end_time, organizer_id, budget, description)
-         VALUES ($1, 'CONCERT', 'PUBLISHED', $2, $3, '11111111-1111-1111-1111-111111111102'::uuid, $4, $5)
+        `INSERT INTO events (id, title, event_type, status, start_time, end_time, organizer_id, budget, description)
+         VALUES ($1, $2, 'CONCERT', 'PUBLISHED', $3, $4, '11111111-1111-1111-1111-111111111102'::uuid, $5, $6)
          RETURNING id;`,
-        [title, startTime, endTime, gigBudget, gigDesc]
+        [eventId, title, startTime, endTime, gigBudget, gigDesc]
       );
       if (dbRes.rows && dbRes.rows.length > 0) {
         eventId = dbRes.rows[0].id;
       }
     } catch (dbErr) {
-      console.warn('Notice: PostgreSQL events insert fallback to in-memory:', dbErr.message);
+      console.warn('Notice: PostgreSQL events insert fallback to in-memory UUID:', dbErr.message);
     }
 
     const newGig = {
