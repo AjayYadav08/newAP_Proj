@@ -3,7 +3,7 @@
 // Module: Core Database Layer (Local & Cloud/Neon Compatible)
 // ==========================================
 
-const { Pool } = require('pg');
+const {Pool} = require('pg');
 
 let poolConfig = {};
 
