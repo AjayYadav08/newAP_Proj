@@ -66,7 +66,7 @@ app.use('/api/events', eventRoutes);
 
 // Direct shortcuts for venues and financial reports
 app.get('/api/venues', eventRoutes.getVenues);
-app.get('/api/reports/earnings', eventRoutes.getEarningsReport);
+app.get('/api/reports/earnings',  eventRoutes.getEarningsReport);
 
 // 4. Static Frontend & DBMS Documentation Serving
 app.use(express.static(path.join(__dirname, '../frontend')));
